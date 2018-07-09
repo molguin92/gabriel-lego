@@ -85,15 +85,22 @@ class LegoHandler(gabriel.network.CommonHandler):
         self.request.sendall(packet)
         self.wfile.flush()
 
-    def _handle_img(self, img):
+def _handle_img(self, img):
+        init_timestamp = time.time()
+
         if self.is_first_frame and not config.RECOGNIZE_ONLY: # do something special when the task begins
             result, img_guidance = self.task.get_first_guidance()
             zc.check_and_display('guidance', img_guidance, display_list, wait_time = config.DISPLAY_WAIT_TIME, resize_max = config.DISPLAY_MAX_PIXEL)
             self.is_first_frame = False
             result['state_index'] = 0  # first step
+            result['ti'] = init_timestamp
+            result['tf'] = time.time()
             return json.dumps(result)
 
-        result = {'status' : "nothing"} # default
+        result = {
+            'status': 'nothing',
+            'ti': init_timestamp
+        }  # default
 
         stretch_ratio = float(16) / 9 * img.shape[0] / img.shape[1]
         if img.shape != (config.IMAGE_WIDTH, config.IMAGE_HEIGHT, 3):
@@ -106,6 +113,8 @@ class LegoHandler(gabriel.network.CommonHandler):
             print rtn_msg['message']
             if rtn_msg['message'] == "Not confident about reconstruction, maybe too much noise":
                 self.counter['not_confident'] += 1
+
+            result['tf'] = time.time()
             return json.dumps(result)
 
         self.counter['confident'] += 1
@@ -135,6 +144,7 @@ class LegoHandler(gabriel.network.CommonHandler):
             zc.display_image('lego_syn', img_syn, wait_time = config.DISPLAY_WAIT_TIME, resize_scale = 50)
 
         if config.RECOGNIZE_ONLY:
+            result['tf'] = time.time()
             return json.dumps(result)
 
         ## now user has done something, provide some feedback
@@ -150,7 +160,7 @@ class LegoHandler(gabriel.network.CommonHandler):
                 step_idx = self.task.state2idx(self.task.current_state)
                 # make sure step index is always -1 in case of error
                 # also, differentiate from the default initial step (which we assign a step index 0)
-                # from the internal step index obtained from the task (which also begins at 0) by 
+                # from the internal step index obtained from the task (which also begins at 0) by
                 # shifting the index by 1:
                 step_idx = -1 if step_idx < 0 else step_idx + 1
             result['state_index'] = step_idx
@@ -158,6 +168,7 @@ class LegoHandler(gabriel.network.CommonHandler):
         if img_guidance is not None:
             zc.check_and_display('guidance', img_guidance, display_list, wait_time = config.DISPLAY_WAIT_TIME, resize_max = config.DISPLAY_MAX_PIXEL)
 
+        result['tf'] = time.time()
         return json.dumps(result)
 
 
