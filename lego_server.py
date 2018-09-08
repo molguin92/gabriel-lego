@@ -85,7 +85,7 @@ class LegoHandler(gabriel.network.CommonHandler):
         self.request.sendall(packet)
         self.wfile.flush()
 
-def _handle_img(self, img):
+    def _handle_img(self, img):
         init_timestamp = time.time()
 
         if self.is_first_frame and not config.RECOGNIZE_ONLY: # do something special when the task begins
