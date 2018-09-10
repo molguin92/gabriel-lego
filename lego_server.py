@@ -86,15 +86,12 @@ class LegoHandler(gabriel.network.CommonHandler):
         self.wfile.flush()
 
     def _handle_img(self, img):
-        init_timestamp = time.time()
 
         if self.is_first_frame and not config.RECOGNIZE_ONLY: # do something special when the task begins
             result, img_guidance = self.task.get_first_guidance()
             zc.check_and_display('guidance', img_guidance, display_list, wait_time = config.DISPLAY_WAIT_TIME, resize_max = config.DISPLAY_MAX_PIXEL)
             self.is_first_frame = False
             result['state_index'] = 0  # first step
-            result['ti'] = init_timestamp
-            result['tf'] = time.time()
             return json.dumps(result)
 
         result = {
@@ -112,9 +109,6 @@ class LegoHandler(gabriel.network.CommonHandler):
             print rtn_msg['message']
             if rtn_msg['message'] == "Not confident about reconstruction, maybe too much noise":
                 self.counter['not_confident'] += 1
-
-            result['ti'] = init_timestamp
-            result['tf'] = time.time()
             return json.dumps(result)
 
         self.counter['confident'] += 1
@@ -144,8 +138,6 @@ class LegoHandler(gabriel.network.CommonHandler):
             zc.display_image('lego_syn', img_syn, wait_time = config.DISPLAY_WAIT_TIME, resize_scale = 50)
 
         if config.RECOGNIZE_ONLY:
-            result['ti'] = init_timestamp
-            result['tf'] = time.time()
             return json.dumps(result)
 
         ## now user has done something, provide some feedback
@@ -169,8 +161,6 @@ class LegoHandler(gabriel.network.CommonHandler):
         if img_guidance is not None:
             zc.check_and_display('guidance', img_guidance, display_list, wait_time = config.DISPLAY_WAIT_TIME, resize_max = config.DISPLAY_MAX_PIXEL)
 
-        result['ti'] = init_timestamp
-        result['tf'] = time.time()
         return json.dumps(result)
 
 

@@ -74,6 +74,7 @@ class LegoProxy(gabriel.proxy.CognitiveProcessThread):
 
     def handle(self, header, data):
         # feed data to the task assistance app
+        ti = time.time()
         packet = struct.pack("!I%ds" % len(data), len(data), data)
         self.task_server_sock.sendall(packet)
         try:
@@ -87,6 +88,11 @@ class LegoProxy(gabriel.proxy.CognitiveProcessThread):
         result_json = json.loads(result_data)
         header['status'] = result_json.pop('status')
         header[gabriel.Protocol_measurement.JSON_KEY_APP_SYMBOLIC_TIME] = result_json.pop(gabriel.Protocol_measurement.JSON_KEY_APP_SYMBOLIC_TIME, -1)
+        tf = time.time()
+
+        result_json['ti'] = ti
+        result_json['tf'] = tf
+        
         result_data = json.dumps(result_json)
 
         return result_data
