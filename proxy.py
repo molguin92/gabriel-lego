@@ -92,7 +92,7 @@ class LegoProxy(gabriel.proxy.CognitiveProcessThread):
 
         result_json['ti'] = ti
         result_json['tf'] = tf
-        
+
         result_data = json.dumps(result_json)
 
         return result_data
