@@ -1,4 +1,4 @@
-FROM cmusatyalab/gabriel
+FROM molguin/gabriel
 MAINTAINER Manuel Olguin, molguin@kth.se
 
 WORKDIR /
