@@ -10,6 +10,11 @@ This is the world's very first wearable cognitive assistance application!   We c
 [license-image]: http://img.shields.io/badge/license-Apache--2-blue.svg?style=flat
 [license]: LICENSE
 
+# Dependency Requirement
+
+* OpenCV: 2.4.9.1 (not working with more recent version)
+* numpy: 1.11.1
+
 # Installation
 ## Client
 An Android client is available on the Google PlayStore 
@@ -20,6 +25,10 @@ Google Play and the Google Play logo are trademarks of Google LLC.
 
 ## Server
 Running the server application using Docker is advised. If you want to install from source, please see [Dockerfile](Dockerfile) for details.
+
+## Lego Set
+
+We used the [lego set](https://www.amazon.com/LEGO-6000207-Life-Of-George/dp/B005UFAG1S) when building this application. Any standard lego bricks would work. However, these bricks need to be placed on this particular [lego board](lego-board.pdf). Print the board on a piece of paper would also work.
 
 
 # How to Run
@@ -35,4 +44,3 @@ docker run --rm -it --name lego \
 -p 0.0.0.0:8080:8080 \
 cmusatyalab/gabriel-lego:latest
 ```
-
