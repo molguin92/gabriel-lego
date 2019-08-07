@@ -14,12 +14,12 @@ class ExTask(Task):
         result = {'status': 'success'}
 
         self.target_state_idx = 0
-        target_state = self.get_state(self.target_state)
+        target_state = self.get_state(self.target_state_idx)
 
         result['speech'] = \
             "Welcome to the Lego task. As a first step, please " \
             "find a piece of 1x%d %s brick and put it on the " \
-            "board." % (self.target_state.shape[1],
+            "board." % (target_state.shape[1],
                         config.COLOR_ORDER[target_state[0, 0]])
         result['animation'] = bm.bitmap2guidance_animation(target_state,
                                                            config.ACTION_TARGET)

@@ -45,7 +45,7 @@ import zhuocv as zc
 
 from tasks.task_Turtle import bitmaps
 from tasks.task_Turtle import time_estimates
-from tasks import Task
+from tasks import ExTask
 
 config.setup(is_streaming = True)
 display_list = config.DISPLAY_LIST
@@ -63,7 +63,7 @@ class LegoHandler(gabriel.network.CommonHandler):
         self.is_first_frame = True
         self.commited_bitmap = np.zeros((1, 1), np.int) # basically nothing
         self.temp_bitmap = {'start_time' : None, 'bitmap' : None, 'count' : 0}
-        self.task = Task.Task(bitmaps)
+        self.task = ExTask.ExTask(bitmaps)
         if time_estimates is not None:
             self.task.update_time_estimates(time_estimates)
         self.counter = {'confident'      : 0,
