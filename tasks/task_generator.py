@@ -10,8 +10,8 @@ class BrickCollection(object):
         self.colors = range(7)
 
         self.collection = []
-        for brick, count in collection_dict:
-            self.collection + ([brick] * count)
+        for brick, count in collection_dict.iteritems():
+            self.collection += ([brick] * count)
 
     def _put_brick(self, length, color):
         self.collection.append((length, color))
@@ -42,9 +42,10 @@ class BrickCollection(object):
 
 
 class TaskGenerator(object):
-    def __init__(self, collection):
+    def __init__(self, collection, table_width=18):
         super(TaskGenerator, self).__init__()
         self.collection = collection
+        self.table_width = table_width
 
     @staticmethod
     def check_anchor(anchor, level, brick, table):
@@ -80,28 +81,39 @@ class TaskGenerator(object):
 
         return n_table
 
-    def generate(self, num_steps, height=8, base_color=6):
-        width = 18
-        pieces = copy.deepcopy(self.collection)
+    def generate(self, num_steps, height=8, base_width=6, base_color=6):
+        assert num_steps >= 1
+
+        base = self.collection.get_brick(base_width, base_color)
+        if base is None:
+            raise RuntimeError('Base not in collection.')
+
         steps = []
-        table = np.zeros((width, height), dtype=int)
+        table = np.zeros((height, self.table_width), dtype=int)
 
         # place base
-        base_anchor = random.randint(0, width - 6)
+        base_anchor = random.randint(0, self.table_width - base_width)
         for i in range(base_anchor, base_anchor + 6):
             table[height - 1][i] = base_color
 
+        steps.append(np.copy(table))
+
+        for i in range(num_steps - 1):
+            brick = self.collection.get_random_brick()
+            table = self.add_brick(table, height - 2 - i, brick)
+            steps.append(np.copy(table))
+
+            # todo remove bricks
+
+        return steps
+
 
 if __name__ == '__main__':
-    table = np.array([
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 0]
-    ])
+    brick_col = BrickCollection(collection_dict={
+        (1, 6): 3,
+        (2, 6): 3,
+        (6, 6): 3,
+    })
 
-    brick_1 = [2, 2, 2]
-    brick_2 = [3, 3]
-
-    for i in range(10):
-        t = TaskGenerator.add_brick(table, 1, brick_1)
-        print(TaskGenerator.add_brick(t, 0, brick_2))
+    gen = TaskGenerator(brick_col)
+    print(gen.generate(3))
