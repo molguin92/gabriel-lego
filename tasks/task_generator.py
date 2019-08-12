@@ -2,7 +2,6 @@ import Queue
 import random
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 
 class BrickCollection(object):
@@ -43,15 +42,13 @@ class BrickCollection(object):
 
 
 class TaskGenerator(object):
-    def __init__(self, collection, table_width=18):
+    def __init__(self, collection):
         super(TaskGenerator, self).__init__()
         self.collection = collection
-        self.table_width = table_width
 
     @staticmethod
-    def check_anchor(anchor, level, brick, table):
+    def check_anchor(anchor, brick, table):
         height, width = table.shape
-        assert level < height
         # first check: does brick fit in table?
         if anchor + len(brick) - 1 >= width:
             return False
@@ -59,68 +56,71 @@ class TaskGenerator(object):
         ret = False
         for i in range(anchor, anchor + len(brick)):
             # second check, does it clash with any other brick
-            if table[level][i] != 0:
+            if table[0][i] != 0:
                 return False
 
             # third check: are there any support points
-            if level + 1 == height:
+            if 1 == height:
                 ret = True
-            elif table[level + 1][i] != 0:
+            elif table[1][i] != 0:
                 ret = True
 
         return ret
 
     @staticmethod
-    def add_brick(table, current_level, brick):
+    def add_brick(table, brick):
         n_table = np.copy(table)
         width = table.shape[1]
 
         anchor = random.choice([i for i in range(width)
                                 if
-                                TaskGenerator.check_anchor(i, current_level,
-                                                           brick, n_table)])
+                                TaskGenerator.check_anchor(i, brick, n_table)])
 
         for i in range(anchor, anchor + len(brick)):
-            n_table[current_level][i] = brick[i - anchor]
+            n_table[0][i] = brick[i - anchor]
 
         return n_table
 
     def generate(self, num_steps, height=8):
         assert num_steps >= 1
 
-        steps = []
-        table = np.zeros((height, self.table_width), dtype=int)
+        base = self.collection.get_brick(length=6, color=6)
 
-        current_level = 0
+        steps = []
+        base_table = np.full((1, len(base)), fill_value=base[0], dtype=int)
+        steps.append(base_table)
+        table = np.vstack((np.zeros((1, len(base)), dtype=int), base_table))
+
+        current_level = 1
         adding = True
         temp_stack = Queue.LifoQueue()
         while len(steps) < num_steps:
             if adding:
                 brick = self.collection.get_random_brick()
                 try:
-                    table = self.add_brick(table, height - 1 - current_level,
-                                           brick)
+                    table = self.add_brick(table, brick)
                     n_table = np.copy(table)
                     steps.append(n_table)
                     temp_stack.put_nowait((n_table, brick))
-
-                    if current_level == 0:  # only one brick at the base level
-                        current_level += 1
-
                 except IndexError:
                     # level is full
                     current_level += 1
                     if current_level == height:
                         adding = False
                         temp_stack.get_nowait()  # pop the latest step
+                    else:
+                        table = np.vstack((np.zeros((1, len(base)),
+                                                    dtype=int), table))
             else:
                 try:
                     step, brick = temp_stack.get_nowait()
                     steps.append(step)
                     self.collection.put_brick(brick)
                 except Queue.Empty:
-                    table = np.zeros((height, self.table_width), dtype=int)
-                    current_level = 0
+                    steps.append(base_table)
+                    table = np.vstack(
+                        (np.zeros((1, len(base)), dtype=int), base_table))
+                    current_level = 1
                     adding = True
 
         return steps
