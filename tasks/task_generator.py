@@ -1,7 +1,8 @@
-import copy
+import Queue
 import random
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 class BrickCollection(object):
@@ -49,7 +50,8 @@ class TaskGenerator(object):
 
     @staticmethod
     def check_anchor(anchor, level, brick, table):
-        width = table.shape[1]
+        height, width = table.shape
+        assert level < height
         # first check: does brick fit in table?
         if anchor + len(brick) - 1 >= width:
             return False
@@ -61,7 +63,9 @@ class TaskGenerator(object):
                 return False
 
             # third check: are there any support points
-            if table[level + 1][i] != 0:
+            if level + 1 == height:
+                ret = True
+            elif table[level + 1][i] != 0:
                 ret = True
 
         return ret
@@ -81,39 +85,92 @@ class TaskGenerator(object):
 
         return n_table
 
-    def generate(self, num_steps, height=8, base_width=6, base_color=6):
+    def generate(self, num_steps, height=8):
         assert num_steps >= 1
-
-        base = self.collection.get_brick(base_width, base_color)
-        if base is None:
-            raise RuntimeError('Base not in collection.')
 
         steps = []
         table = np.zeros((height, self.table_width), dtype=int)
 
-        # place base
-        base_anchor = random.randint(0, self.table_width - base_width)
-        for i in range(base_anchor, base_anchor + 6):
-            table[height - 1][i] = base_color
+        current_level = 0
+        adding = True
+        temp_stack = Queue.LifoQueue()
+        while len(steps) < num_steps:
+            if adding:
+                brick = self.collection.get_random_brick()
+                try:
+                    table = self.add_brick(table, height - 1 - current_level,
+                                           brick)
+                    n_table = np.copy(table)
+                    steps.append(n_table)
+                    temp_stack.put_nowait((n_table, brick))
 
-        steps.append(np.copy(table))
+                    if current_level == 0:  # only one brick at the base level
+                        current_level += 1
 
-        for i in range(num_steps - 1):
-            brick = self.collection.get_random_brick()
-            table = self.add_brick(table, height - 2 - i, brick)
-            steps.append(np.copy(table))
-
-            # todo remove bricks
+                except IndexError:
+                    # level is full
+                    current_level += 1
+                    if current_level == height:
+                        adding = False
+                        temp_stack.get_nowait()  # pop the latest step
+            else:
+                try:
+                    step, brick = temp_stack.get_nowait()
+                    steps.append(step)
+                    self.collection.put_brick(brick)
+                except Queue.Empty:
+                    table = np.zeros((height, self.table_width), dtype=int)
+                    current_level = 0
+                    adding = True
 
         return steps
 
 
-if __name__ == '__main__':
-    brick_col = BrickCollection(collection_dict={
-        (1, 6): 3,
-        (2, 6): 3,
-        (6, 6): 3,
-    })
+Life_of_George_Bricks = BrickCollection(
+    collection_dict={
+        # black bricks
+        (1, 6): 8,
+        (2, 6): 6,
+        (6, 6): 2,
+        (4, 6): 4,
+        (3, 6): 4,
+        # blue bricks
+        (1, 5): 8,
+        (2, 5): 6,
+        (6, 5): 2,
+        (4, 5): 4,
+        (3, 5): 4,
+        # red bricks
+        (1, 4): 8,
+        (2, 4): 6,
+        (6, 4): 2,
+        (4, 4): 4,
+        (3, 4): 4,
+        # yellow bricks
+        (1, 3): 8,
+        (2, 3): 6,
+        (6, 3): 2,
+        (4, 3): 4,
+        (3, 3): 4,
+        # green bricks
+        (1, 2): 8,
+        (2, 2): 6,
+        (6, 2): 2,
+        (4, 2): 4,
+        (3, 2): 4,
+        # white bricks
+        (1, 6): 8,
+        (2, 6): 6,
+        (6, 6): 2,
+        (4, 6): 4,
+        (3, 6): 4,
+    }
+)
 
-    gen = TaskGenerator(brick_col)
-    print(gen.generate(3))
+DefaultGenerator = TaskGenerator(Life_of_George_Bricks)
+
+if __name__ == '__main__':
+    for i, t in enumerate(DefaultGenerator.generate(200)):
+        print(' ')
+        print(i)
+        print(t)
