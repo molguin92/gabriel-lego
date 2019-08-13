@@ -31,6 +31,9 @@ class ExTask(Task):
     def search_next(self, current_state, bm_diffs, search_type='more'):
         pass  # todo
 
+    def is_final_state(self):
+        pass
+
     def get_guidance(self):
         result = {'status': 'success'}
         target_state = self.get_state(self.target_state_idx)
@@ -38,7 +41,8 @@ class ExTask(Task):
         ## Check if we at least reached the previously desired state
         if bm.bitmap_same(self.current_state, target_state):
             ## Task is done
-            if self.is_final_state():
+            # if self.is_final_state():
+            if self.target_state_idx == len(self.states) - 1:
                 result['speech'] = "You have completed the task. " \
                                    "Congratulations!"
                 result['animation'] = bm.bitmap2guidance_animation(
