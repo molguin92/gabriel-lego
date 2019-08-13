@@ -212,7 +212,8 @@ def generate_message(bm_old, bm_new, action, diff_piece, diff_piece2 = None, ste
         if random.random() < p:
             message = config.GOOD_WORDS[good_word_idx] + message
     elif action == config.ACTION_REMOVE:
-        message = "This is incorrect. Now remove the 1x%d %s piece from " % ((col_idx_end - col_idx_start + 1), config.COLOR_ORDER[label])
+        message = "Remove the 1x%d %s piece from " % ((col_idx_end -
+                                                       col_idx_start + 1), config.COLOR_ORDER[label])
         position = get_piece_position(bm_old, diff_piece)
         if position is not None:
             message += "the %s of the current model." % position
