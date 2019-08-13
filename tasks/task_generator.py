@@ -81,7 +81,7 @@ class TaskGenerator(object):
 
         return n_table
 
-    def generate(self, num_steps, height=8):
+    def generate(self, num_steps, height=4):
         assert num_steps >= 1
 
         base = self.collection.get_brick(length=6, color=6)
